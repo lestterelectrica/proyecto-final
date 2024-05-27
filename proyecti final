@@ -1,0 +1,60 @@
+#include <Servo.h>
+
+class UltrasonicServoController {
+  private:
+    Servo myServo;
+    int trigPin;
+    int echoPin;
+    int servoPin;
+
+  public:
+    UltrasonicServoController(int tp, int ep, int sp) 
+      : trigPin(tp), echoPin(ep), servoPin(sp) {}
+
+    void begin() {
+      myServo.attach(servoPin);
+      pinMode(trigPin, OUTPUT);
+      pinMode(echoPin, INPUT);
+      Serial.begin(9600);
+    }
+
+    void update() {
+      long duration, distance;
+      
+      // Enviar un pulso de 10us para activar el sensor
+      digitalWrite(trigPin, LOW);
+      delayMicroseconds(2);
+      digitalWrite(trigPin, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(trigPin, LOW);
+      
+      // Leer el tiempo del pulso de retorno
+      duration = pulseIn(echoPin, HIGH);
+      
+      // Calcular la distancia (duración del pulso / 2) * velocidad del sonido (0.0343 cm/us)
+      distance = (duration / 2) * 0.0343;
+      
+      // Imprimir la distancia para depuración
+      Serial.print("Distance: ");
+      Serial.println(distance);
+      
+      // Controlar el servomotor basado en la distancia
+      if (distance <= 15) {
+        myServo.write(90);  // Mover el servomotor a 90 grados
+      } else {
+        myServo.write(0);  // Mover el servomotor a 0 grados
+      }
+      
+      delay(500);  // Esperar medio segundo antes de la siguiente lectura
+    }
+};
+
+UltrasonicServoController controller(9, 10, 6);
+
+void setup() {
+  controller.begin();
+}
+
+void loop() {
+  controller.update();
+}
